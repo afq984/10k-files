@@ -1,0 +1,59 @@
+<body>
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+
+            console.log("test");
+            const canvas = document.getElementById("canvas");
+            const ctx = canvas.getContext("2d");
+
+            const start = document.getElementById("start");
+
+            start.addEventListener("click", async () => {
+                start.disabled = true;
+                document.getElementById("done").textContent = "";
+
+                const t0 = new Date;
+                const dir = await window.showDirectoryPicker({ mode: "readwrite", });
+
+                ctx.fillStyle = "red";
+                ctx.fillRect(0, 0, 600, 600);
+
+                const workers = parseInt(document.getElementById("workers").value);
+                ctx.fillStyle = "green";
+
+                const work = async (id, workes) => {
+                    for (let i = id; i < 10000; i += workers) {
+                        const fileHandle = await dir.getFileHandle(`${i}.txt`, { create: true });
+                        const writable = await fileHandle.createWritable();
+                        await writable.write(`${i}\n`);
+                        await writable.close();
+
+                        const x = i % 100;
+                        const y = Math.floor(i / 100);
+                        ctx.fillRect(x * 6, y * 6, 6, 6);
+                    }
+                }
+
+                const jobs = [];
+                for (let i = 0; i < workers; i++) {
+                    jobs.push(work(i, workers));
+                }
+                await Promise.all(jobs);
+
+                const t1 = new Date;
+                const secs = (t1 - t0) / 1000;
+                let msg = `Done in ${secs} seconds; ${10000 / secs} files/s`;
+                console.log(msg);
+                document.getElementById("done").textContent = msg;
+                start.disabled = false;
+            });
+        });
+
+    </script>
+    <input id="workers" type="number" min="1" value="1">
+    <button id="start">Start</button>
+    <hr>
+    <canvas id="canvas" width="600" height="600"></canvas>
+    <p id="done"></p>
+
+</body>
