@@ -12,8 +12,9 @@
                 start.disabled = true;
                 document.getElementById("done").textContent = "";
 
-                const t0 = new Date;
                 const dir = await window.showDirectoryPicker({ mode: "readwrite", });
+
+                const t0 = new Date;
 
                 ctx.fillStyle = "red";
                 ctx.fillRect(0, 0, 600, 600);
